@@ -1,0 +1,59 @@
+<div class="container" style="max-width: 600px; background-color: #fff">
+    <h1>admin</h1>
+    <h4>{{#if editItem}} Edit {{else}} Add {{/if}} Item</h4>
+    {{#if editItem}}
+        <div id="id-div" style="display: none;" data-id="{{editItem.id}}"></div>
+    {{/if}}
+    <div class="form-group">
+        <label>title</label>
+        <input id="title-input" type="text" class="form-control" value="{{editItem.title}}" />
+    </div>
+
+    <div class="form-group">
+        <label>description</label>
+        <textarea rows="8" id="description-input" type="text" class="form-control">{{editItem.description}}</textarea>
+    </div>
+
+    <div style="display: flex; flex-direction: row; justify-content: flex-end; align-items: center;">
+        <button id="save-btn" class="btn btn-primary">Save</button>
+    </div>
+    <br>
+
+    {{#if editItem}}
+        <div class="input-group">
+            <input id="file-input" type="file" name="file" data-id="{{editItem.id}}">
+            <button id="upload-btn" class="btn btn-md btn-default" style="border: 1px #ccc solid">upload</button>
+        </div>
+
+        <label>Uploaded images</label>
+        <div style="display: flex; flex-direction: row; justify-content: flex-start; align-items: center;">
+            {{#each editItem.imageUrls}}
+                <div style="margin: 5px">
+                    <img src="{{../url}}/{{this}}" style="width: 70px; height: 70px;"/>
+                    <button class="btn btn-xs btn-danger delete-img-btn" data-url="{{this}}">delete</button>
+                    <button class="btn btn-xs btn-default shift-img-btn" data-url="{{this}}" style="border: 1px #ccc solid">shift</button>
+                </div>
+            {{/each}}   
+        </div>
+    {{/if}}
+
+    <hr>
+
+    <h4>Inventory</h4>
+    <ul>
+    {{#each items}}
+            <li>
+                {{this.id}}
+                {{this.title}} 
+                <button class="edit-btn btn btn-xs btn-default" data-id="{{this.id}}">
+                    edit
+                </button>
+                <button class="delete-btn btn btn-xs btn-danger" data-id="{{this.id}}">
+                    delete
+                </button>
+            </li>
+    {{/each}}
+    </ul>
+</div>
+
+<script src="{{url}}/admin.js"></script>

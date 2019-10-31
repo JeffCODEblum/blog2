@@ -1,0 +1,13 @@
+<h1>{{title}}</h1>
+<img class="main-img" width="300" height="300" src="{{url}}/{{mainImageUrl}}">
+<div style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start;">
+    {{#each imageUrls}}
+        <div style="padding: 5px;">
+            <a class="img-thmb">
+                <img width="60" height="60" src="{{../url}}/{{this}}" data-src="{{this}}">
+            </a>
+        </div>
+    {{/each}}
+</div>
+<p>{{description}}</p>
+
