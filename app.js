@@ -5,6 +5,7 @@ const fs = require('fs');
 const bodyParser = require('body-parser');
 const app = express();
 const mongoose = require('mongoose');
+const testData = require('./testData.js');
 
 mongoose.connect('mongodb://localhost/test', {useNewUrlParser: true});
 const db = mongoose.connection;
@@ -24,31 +25,45 @@ app.set('view engine', 'handlebars');
 
 const APP_URL = 'http://localhost:4000';
 
-const data = {
-    items: [
-        {
-            title: 'foo1',
-            description: 'this is a great buffalo nickel blah blah blah'
-        },
-        {
-            title: 'foo2',
-            description: 'this is a great buffalo nickel blah blah blah'
-        },
-        {
-            title: 'foo3',
-            description: 'this is a great buffalo nickel blah blah blah'
+const data = testData;
+function authenticate(req, res, callback) {
+    if (!req.headers.authorization) {
+        res.redirect(APP_URL + '/login');
+    }
+    else {
+        var token = req.headers.authorization;
+        try {
+            var decoded = jwt.verify(token, 'private-key');
+            if (decoded) {
+                callback();
+            }
+            else {
+                res.sendStatus(403);
+            }
         }
-    ]
-};
+        catch(err) {
+            console.log(err);
+            res.sendStatus(403);
+        }
+    }
+    return;
+}
 
 // dummy data load
 app.get('/prime-db', (req, res) => {
     for (let i = 0; i < data.items.length; i++) {
-        const model = new ItemModel({
-            title: data.items[i].title,
-            description: data.items[i].description
+        const img = data.images[i].replace(/^data:image\/\w+;base64,/, "");
+        const buf = Buffer.from(img, 'base64');
+        const fullpathname = '/uploads/' + Date.now() + '.png';
+        fs.writeFile('./public' + fullpathname, buf, () => {
+            const model = new ItemModel({
+                title: data.items[i].title,
+                description: data.items[i].description,
+                imageUrls: [fullpathname]
+            });
+            model.save();
+            return;
         });
-        model.save();
     }
     res.send(true);
     return;
@@ -62,7 +77,7 @@ app.get('/', (req, res) => {
             res.sendStatus(500);
         }
         else {
-            const context = docs.map(item => {return { id: item.id, title: item.title, imageUrl: item.imageUrls[0]}});
+            const context = docs.map(item => {return { id: item.id, title: item.title, description: item.description, imageUrl: item.imageUrls[0]}});
             res.render('home', {items: context});
         }
     });
@@ -110,29 +125,6 @@ app.post('/login-submit', (req, res) => {
     }
     return;
 });
-
-function authenticate(req, res, callback) {
-    if (!req.headers.authorization) {
-        res.redirect(APP_URL + '/login');
-    }
-    else {
-        var token = req.headers.authorization;
-        try {
-            var decoded = jwt.verify(token, 'private-key');
-            if (decoded) {
-                callback();
-            }
-            else {
-                res.sendStatus(403);
-            }
-        }
-        catch(err) {
-            console.log(err);
-            res.sendStatus(403);
-        }
-    }
-    return;
-}
 
 // main admin page
 app.get('/admin', (req, res) => {
