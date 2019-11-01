@@ -1,6 +1,24 @@
-<h1>{{title}}</h1>
-<img class="main-img" width="300" height="300" src="{{url}}/{{mainImageUrl}}">
-<div style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start;">
+<div class="container" style="width: 600px; background-color: #fff">
+    <h1>{{title}}</h1>
+    <div style="text-align: center;">
+        <img class="main-img" width="300" height="300" src="{{url}}/{{mainImageUrl}}">
+    </div>
+    <p>{{description}}</p>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>
+    <hr />
+    <label>Email</label>
+    <input type="email" class="form-control" />
+    <label>Comment</label>
+    <textarea rows="4" class="form-control"></textarea>
+    <br />
+    <div style="height: 50px; display: flex; flex-direction: row; justify-content: flex-end;">
+        <button class="btn btn-primary" style="float: right;">Comment</button>
+    </div>
+</div>
+
+
+{{!-- <div style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start;">
     {{#each imageUrls}}
         <div style="padding: 5px;">
             <a class="img-thmb">
@@ -8,6 +26,5 @@
             </a>
         </div>
     {{/each}}
-</div>
-<p>{{description}}</p>
+</div> --}}
 
