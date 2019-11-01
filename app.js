@@ -111,8 +111,7 @@ app.post('/login-submit', (req, res) => {
     return;
 });
 
-// main admin page
-app.get('/admin', (req, res) => {
+function authenticate(req, res, callback) {
     if (!req.headers.authorization) {
         res.redirect(APP_URL + '/login');
     }
@@ -121,158 +120,171 @@ app.get('/admin', (req, res) => {
         try {
             var decoded = jwt.verify(token, 'private-key');
             if (decoded) {
-                var context = {url: APP_URL};
-                ItemModel.find({}, function(err, docs) {
-                    if (err) {
-                        console.log(err);
-                        res.sendStatus(500);
-                    }
-                    if (docs) {
-                        context.items =  docs.map(item => {return { id: item.id, title: item.title, imageUrl: item.imageUrls[0]}});
-                        context.editItem = false;
-                        res.render('admin', context);
-                    }
-                });
-            }
-            else {
-                res.redirect(APP_URL + '/login');
-            }
-        }
-        catch (e) {
-            console.log(e);
-            res.sendStatus(403);
-        }
-    }
-    return;
-});
-
-// admin detail page
-app.get('/admin/:id', (req, res) => {
-    if (!req.headers.authorization) {
-        res.redirect(APP_URL + '/login');
-    }
-    else {
-        const token = req.headers.authorization;
-        try {
-            const decoded = jwt.verify(token, 'private-key');
-            if (decoded) {
-                const id = req.params.id;
-                ItemModel.findOne({_id: id}, (err, doc) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                    if (doc) {
-                        const context = {url: APP_URL, editItem: doc};
-                        ItemModel.find({}, function(err, docs) {
-                            if (err) {
-                                console.log(err);
-                                res.sendStatus(500);
-                            }
-                            if (docs) {
-                                context.items = docs.map(item => {return { id: item.id, title: item.title, imageUrl: item.imageUrls[0]}});
-                                res.render('admin', context);
-                            }
-                        });
-                    }
-                });
-            }
-            else {
-                res.redirect(APP_URL + '/login');
-            }
-        }
-        catch (e) {
-            console.log(e);
-            res.sendStatus(403);
-        }
-    }
-    return;
-});
-
-// upload image
-app.post('/upload-image', (req, res) => {
-    const token = req.headers.authorization;
-    try {
-        const decoded = jwt.verify(token, 'private-key');
-        if (decoded) {
-            const img = req.body.file.replace(/^data:image\/\w+;base64,/, "");
-            const buf = Buffer.from(img, 'base64');
-            const fullpathname = '/uploads/' + Date.now() + '.png';
-            const id = req.body.id;
-
-            ItemModel.findOneAndUpdate({_id: id}, {$push: {imageUrls: fullpathname}}, {}, (err, doc) => {
-                if (err) {
-                    console.log(err);
-                    res.sendStatus(500);
-                }
-                if (doc) {
-                    fs.writeFile('./public' + fullpathname, buf, () => {
-                        res.send(true);
-                        return;
-                    });
-                }
-                return;
-            });
-        }
-        else {
-            res.sendStatus(403);
-        }
-    }
-    catch (e) {
-        res.sendStatus(403);
-    }
-    return;
-});
-
-app.post('/save-post', (req, res) => {
-    if (!req.headers.authorization) {
-        res.sendStatus(403);
-    }
-    else {
-        const token = req.headers.authorization;
-        try {
-            const decoded = jwt.verify(token, 'private-key');
-            if (decoded) {
-                const title = req.body.title;
-                const description = req.body.description;
-                const model = new ItemModel({title: title, description: description, imageUrls: []});
-                model.save((err, doc) => {
-                    if (err) {
-                        console.log(err);
-                        res.sendStatus(500);
-                    }
-                    if (doc) {
-                        res.send(true);
-                    }
-                    return;
-                });
+                callback();
             }
             else {
                 res.sendStatus(403);
             }
         }
-        catch(e) {
-            console.log(e);
+        catch(err) {
+            console.log(err);
             res.sendStatus(403);
         }
     }
+    return;
+}
+
+// main admin page
+app.get('/admin', (req, res) => {
+    authenticate(req, res, () => {
+        var context = {url: APP_URL};
+        ItemModel.find({}, (err, docs) => {
+            if (err) {
+                console.log(err);
+                res.sendStatus(500);
+            }
+            if (docs) {
+                context.items =  docs.map(item => {return { id: item.id, title: item.title, imageUrl: item.imageUrls[0]}});
+                context.editItem = false;
+                res.render('admin', context);
+            }
+            return;
+        });
+        return;
+    });         
+    return;
+});
+
+// admin detail page
+app.get('/admin/:id', (req, res) => {
+    authenticate(req, res, () => {
+        const id = req.params.id;
+        ItemModel.findOne({_id: id}, (err, doc) => {
+            if (err) {
+                console.log(err);
+            }
+            if (doc) {
+                const context = {url: APP_URL, editItem: doc};
+                ItemModel.find({}, (err, docs)=> {
+                    if (err) {
+                        console.log(err);
+                        res.sendStatus(500);
+                    }
+                    if (docs) {
+                        context.items = docs.map(item => {return { id: item.id, title: item.title, imageUrl: item.imageUrls[0]}});
+                        res.render('admin', context);
+                    }
+                    return;
+                });
+            }
+            return;
+        });
+        return;
+    });
+    return;
+});
+
+// upload image
+app.post('/upload-image', (req, res) => {
+    authenticate(req, res, () => {
+        const img = req.body.file.replace(/^data:image\/\w+;base64,/, "");
+        const buf = Buffer.from(img, 'base64');
+        const fullpathname = '/uploads/' + Date.now() + '.png';
+        const id = req.body.id;
+        ItemModel.findOneAndUpdate({_id: id}, {$push: {imageUrls: fullpathname}}, {}, (err, doc) => {
+            if (err) {
+                console.log(err);
+                res.sendStatus(500);
+            }
+            if (doc) {
+                fs.writeFile('./public' + fullpathname, buf, () => {
+                    res.send(true);
+                    return;
+                });
+            }
+            return;
+        });
+        return;
+    });
+    return;
+});
+
+app.post('/save-post', (req, res) => {
+    authenticate(req, res, () => {
+        const title = req.body.title;
+        const description = req.body.description;
+        const model = new ItemModel({title: title, description: description, imageUrls: []});
+        model.save((err, doc) => {
+            if (err) {
+                console.log(err);
+                res.sendStatus(500);
+            }
+            if (doc) {
+                res.send(true);
+            }
+            return;
+        });
+        return;
+    });  
     return;
 });
 
 // save item
 app.post('/save-post/:id', (req, res) => {
-    if (!req.headers.authorization) {
-        res.sendStatus(403);
-    }
-    else {
-        const token = req.headers.authorization;
-        try {
-            const decoded = jwt.verify(token, 'private-key');
-            if (decoded) {
-                const title = req.body.title;
-                const description = req.body.description;
-                const id = req.params.id;
-                if (id) {
-                    ItemModel.findOneAndUpdate({_id: id}, {title: title, description: description}, function(err, doc) {
+    authenticate(req, res, () => {
+        const title = req.body.title;
+        const description = req.body.description;
+        const id = req.params.id;
+        if (id) {
+            ItemModel.findOneAndUpdate({_id: id}, {title: title, description: description}, (err, doc) => {
+                if (err) {
+                    console.log(err);
+                    res.sendStatus(500);
+                }
+                if (doc) {
+                    res.send(true);
+                }
+                return;
+            });
+        }
+        return;
+    });    
+    return;
+});
+
+// shift image
+app.post('/shift-image/:id/:file', (req, res) => {
+    authenticate(req, res, () => {
+        ItemModel.findOne({_id: req.params.id}, (err, doc) => {
+            if (err) {
+                console.log(err);
+                res.sendStatus(500);
+            }
+            if (doc) {
+                const imageUrls = doc.imageUrls;
+                const filename = '/uploads/' + req.params.file + '.png';
+                const originalIndex = imageUrls.indexOf(filename);
+                imageUrls.splice(originalIndex, 1);
+                if (originalIndex == 0) {
+                    imageUrls.push(filename);
+                }
+                else {
+                    const newIndex = originalIndex - 1;
+                    const newArray = [];
+                    for (let j = 0; j < imageUrls.length + 1; j++) {
+                        if (j == newIndex) {
+                            newArray.push(filename);
+                        }
+                        else {
+                            if (j < newIndex) {
+                                newArray.push(imageUrls[j]);
+                            }
+                            else {
+                                newArray.push(imageUrls[j - 1]);
+                            }
+                        }
+                    }
+                    ItemModel.findOneAndUpdate({_id: req.params.id}, {imageUrls: newArray}, (err, doc) => {
                         if (err) {
                             console.log(err);
                             res.sendStatus(500);
@@ -280,142 +292,31 @@ app.post('/save-post/:id', (req, res) => {
                         if (doc) {
                             res.send(true);
                         }
+                        return;
                     });
                 }
             }
-            else {
-                res.sendStatus(403);
-            }
-        }
-        catch(e) {
-            console.log(e);
-            res.sendStatus(403);
-        }
-    }
-    return;
-});
-
-// shift image
-app.post('/shift-image/:id/:file', (req, res) => {
-    if (!req.headers.authorization) {
-        res.sendStatus(403);
-    }
-    else {
-        const token = req.headers.authorization;
-        try {
-            const decoded = jwt.verify(token, 'private-key');
-            if (decoded) {
-                ItemModel.findOne({_id: req.params.id}, (err, doc) => {
-                    if (err) {
-                        console.log(err);
-                        res.sendStatus(500);
-                    }
-                    if (doc) {
-                        const imageUrls = doc.imageUrls;
-                        const filename = '/uploads/' + req.params.file + '.png';
-                        const originalIndex = imageUrls.indexOf(filename);
-                        imageUrls.splice(originalIndex, 1);
-                        if (originalIndex == 0) {
-                            imageUrls.push(filename);
-                        }
-                        else {
-                            const newIndex = originalIndex - 1;
-                            const newArray = [];
-                            for (let j = 0; j < imageUrls.length + 1; j++) {
-                                if (j == newIndex) {
-                                    newArray.push(filename);
-                                }
-                                else {
-                                    if (j < newIndex) {
-                                        newArray.push(imageUrls[j]);
-                                    }
-                                    else {
-                                        newArray.push(imageUrls[j - 1]);
-                                    }
-                                }
-                            }
-                            ItemModel.findOneAndUpdate({_id: req.params.id}, {imageUrls: newArray}, (err, doc) => {
-                                if (err) {
-                                    console.log(err);
-                                    res.sendStatus(500);
-                                }
-                                if (doc) {
-                                    res.send(true);
-                                }
-                                return;
-                            });
-                        }
-                    }
-                    return;
-                });
-            }
-            else {
-                res.sendStatus(403);
-            }
-        } catch(e) {
-            res.sendStatus(403);
-        }
-    }
+            return;
+        });
+        return;
+    });     
     return;
 });
 
 // delete image
 app.delete('/delete-image/:id/:file', (req, res) => {
-    if (!req.headers.authorization) {
-        res.sendStatus(403);
-    }
-    else {
-        const token = req.headers.authorization;
-        try {
-            const decoded = jwt.verify(token, 'private-key');
-            if (decoded) {
-                const id = req.params.id;
-                const file = req.params.file;
-                ItemModel.findOne({_id: id}, (err, doc) => {
-                    if (err) {
-                        console.log(err);
-                        res.sendStatus(500);
-                    }
-                    if (doc) {
-                        const array = doc.imageUrls;
-                        array.splice(array.indexOf(file), 1);
-                        ItemModel.findOneAndUpdate({_id: id}, {imageUrls: array}, (err, doc) => {
-                            if (err) {
-                                console.log(err);
-                                res.sendStatus(500);
-                            }
-                            if (doc) {
-                                res.send(true);
-                            }
-                            return;
-                        });
-                    }
-                    return;
-                });
+    authenticate(req, res, () => {
+        const id = req.params.id;
+        const file = req.params.file;
+        ItemModel.findOne({_id: id}, (err, doc) => {
+            if (err) {
+                console.log(err);
+                res.sendStatus(500);
             }
-            else {
-                res.sendStatus(403);
-            }
-        }
-        catch (err) {
-            res.sendStatus(403);
-        }
-    }
-    return;
-});
-
-// delete item
-app.delete('/delete-post/:id', (req, res) => {
-    if (!req.headers.authorization) {
-        res.sendStatus(403);
-    }
-    else {
-        const token = req.headers.authorization;
-        try {
-            const decoded = jwt.verify(token, 'private-key');
-            if (decoded) {
-                const id = req.params.id;
-                ItemModel.deleteOne({_id: id}, (err, doc) => {
+            if (doc) {
+                const array = doc.imageUrls;
+                array.splice(array.indexOf(file), 1);
+                ItemModel.findOneAndUpdate({_id: id}, {imageUrls: array}, (err, doc) => {
                     if (err) {
                         console.log(err);
                         res.sendStatus(500);
@@ -426,15 +327,29 @@ app.delete('/delete-post/:id', (req, res) => {
                     return;
                 });
             }
-            else {
-                res.sendStatus(403);
+            return;
+        });
+        return;
+    }); 
+    return;
+});
+
+// delete item
+app.delete('/delete-post/:id', (req, res) => {
+    authenticate(req, res, () => {
+        const id = req.params.id;
+        ItemModel.deleteOne({_id: id}, (err, doc) => {
+            if (err) {
+                console.log(err);
+                res.sendStatus(500);
             }
-        }
-        catch (e) {
-            console.log(e);
-            res.sendStatus(403);
-        }
-    }
+            if (doc) {
+                res.send(true);
+            }
+            return;
+        });
+        return;
+    });      
     return;
 });
 
