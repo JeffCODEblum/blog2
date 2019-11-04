@@ -15,7 +15,7 @@ db.once('open', function() {
   // we're connected!
 });
 
-const ItemSchema = new mongoose.Schema({title: String, imageUrls: [String], description: String, timestamp: String});
+const ItemSchema = new mongoose.Schema({title: String, imageUrls: [String], description: String, timestamp: String, body: String});
 const ItemModel = new mongoose.model('ItemModel', ItemSchema);
 
 const CommentSchema = new mongoose.Schema({email: String, name: String, comment: String, timestamp: String, hidden: Boolean, postId: String});
@@ -64,7 +64,8 @@ app.get('/prime-db', (req, res) => {
                 title: data.items[i].title,
                 description: data.items[i].description,
                 imageUrls: [fullpathname],
-                timestamp: '' + Date.now()
+                timestamp: '' + Date.now(),
+                body: data.items[i].body
             });
             model.save();
             return;
@@ -82,7 +83,14 @@ app.get('/', (req, res) => {
             res.sendStatus(500);
         }
         else {
-            const context = docs.map(item => {return { id: item.id, title: item.title, description: item.description, imageUrl: item.imageUrls[0], timestamp: Moment(parseInt(item.timestamp)).format("MMMM Do YYYY")}});
+            const context = docs.map(item => {return { 
+                id: item.id, 
+                title: item.title, 
+                description: item.description, 
+                imageUrl: item.imageUrls[0], 
+                timestamp: Moment(parseInt(item.timestamp)).format("MMMM Do YYYY"),
+                body: item.body
+            }});
             res.render('home', {items: context});
         }
     });
@@ -119,7 +127,8 @@ app.get('/detail/:id', (req, res) => {
                         url: APP_URL, 
                         mainImageUrl: doc.imageUrls[0],
                         timestamp: doc.timestamp,
-                        comments: comments
+                        comments: comments,
+                        body: doc.body
                     };
                     res.render('detail', context);
                 }
@@ -159,7 +168,12 @@ app.get('/admin', (req, res) => {
                 res.sendStatus(500);
             }
             if (docs) {
-                context.items =  docs.map(item => {return { id: item.id, title: item.title, imageUrl: item.imageUrls[0], timestamp: item.timestamp}});
+                context.items =  docs.map(item => {return { 
+                    id: item.id, 
+                    title: item.title, 
+                    imageUrl: item.imageUrls[0], 
+                    timestamp: item.timestamp
+                }});
                 context.editItem = false;
                 res.render('admin', context);
             }
@@ -201,7 +215,12 @@ app.get('/admin/:id', (req, res) => {
                                 res.sendStatus(500);
                             }
                             if (docs) {
-                                context.items = docs.map(item => {return { id: item.id, title: item.title, imageUrl: item.imageUrls[0], timestamp: item.timestamp}});
+                                context.items = docs.map(item => {return { 
+                                    id: item.id, 
+                                    title: item.title, 
+                                    imageUrl: item.imageUrls[0], 
+                                    timestamp: item.timestamp
+                                }});
                                 res.render('admin', context);
                             }
                             return;
@@ -294,7 +313,14 @@ app.post('/save-post', (req, res) => {
     authenticate(req, res, () => {
         const title = req.body.title;
         const description = req.body.description;
-        const model = new ItemModel({title: title, description: description, imageUrls: [], timestamp: '' + Date.now()});
+        const body = req.body.body;
+        const model = new ItemModel({
+            title: title, 
+            description: description, 
+            imageUrls: [], 
+            timestamp: '' + Date.now(),
+            body: body
+        });
         model.save((err, doc) => {
             if (err) {
                 console.log(err);
@@ -315,9 +341,10 @@ app.post('/save-post/:id', (req, res) => {
     authenticate(req, res, () => {
         const title = req.body.title;
         const description = req.body.description;
+        const body = req.body.body;
         const id = req.params.id;
         if (id) {
-            ItemModel.findOneAndUpdate({_id: id}, {title: title, description: description}, (err, doc) => {
+            ItemModel.findOneAndUpdate({_id: id}, {title: title, description: description, body: body}, (err, doc) => {
                 if (err) {
                     console.log(err);
                     res.sendStatus(500);

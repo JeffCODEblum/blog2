@@ -2,11 +2,13 @@ module.exports = {
     items: [
         {
             title: 'This crazy truck is layin low and scrapin the flo',
-            description: 'I was looking for a truck that was slammed so I could ride around town scraping the ground and lookin hella cool. Usually I hit the switches a couple times for the ladies. All in all it was a good investment.'
+            description: 'I was looking for a truck that was slammed so I could ride around town scraping the ground and lookin hella cool. Usually I hit the switches a couple times for the ladies. All in all it was a good investment.',
+            body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum'
         },
         {
             title: "Sometimes you just gotta draggit and you know that's ok too",
-            description: "So the theme this week is clean and cool to drive to school. With the holidays around the corner we will show you some great recipes for disaster that you can serve up to all the noobs at your grandma's house."
+            description: "So the theme this week is clean and cool to drive to school. With the holidays around the corner we will show you some great recipes for disaster that you can serve up to all the noobs at your grandma's house.",
+            body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum'
         },
     ],
     images: [

@@ -109,9 +109,11 @@ $( document ).ready(function() {
         e.preventDefault();
         var title = $("#title-input").val();
         var description = $("#description-input").val();
+        var body = $("#body-input").val();
         var payload = {};
         payload.title = title;
         payload.description = description;
+        payload.body = body;
 
         var url = URL + '/save-post';
         var id = $("#id-div").data('id');
