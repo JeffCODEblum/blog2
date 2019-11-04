@@ -162,6 +162,36 @@ $( document ).ready(function() {
             window.history.pushState({"html":"data","pageTitle":"admin"},"", URL + "/admin/" + id);
         });
     });
+
+    $(".delete-comment-btn").click(function(e) {
+        e.preventDefault();
+        var id = $(e.target).data("id");
+
+        $.ajax({
+            type: 'DELETE',
+            url: URL + '/delete-comment/' + id,
+            contentType: 'application/json; charset=utf-8',
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader("Authorization", localStorage.getItem("jwt"));
+            }
+        }).done(function(data) {
+            $.ajax({
+                type: 'GET',
+                url: URL + '/admin',
+                contentType: 'html',
+                beforeSend: function (xhr) { 
+                    xhr.setRequestHeader("Authorization", localStorage.getItem("jwt"));
+                }
+            }).done(function(data) {
+                var newDoc = document.open("text/html", "replace");
+                newDoc.write(data);
+                newDoc.close();
+                window.history.pushState({"html":"data","pageTitle":"admin"},"", URL + "/admin");
+            });
+        }).fail(function(e) {
+            console.log(e);
+        });
+    });
     
     $(".delete-btn").click(function(e) {
         e.preventDefault();

@@ -13,16 +13,19 @@
 
 <div style="background-color: #efefefef; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-wrap: wrap;">
     {{#each items}}
-        <div style="border-bottom: solid 2px #ccc; padding: 20px; width: 600px; height: 250px; margin: 10px; background-color: #fff; display: flex; flex-direction: row; justify-content: flex-start; align-items: center;">
-            <a href="detail/{{this.id}}" style="width: 160px; height: 160px;">
+        <div style="border-bottom: solid 2px #ccc; padding: 20px; width: 600px; margin: 10px; background-color: #fff; display: flex; flex-direction: row; justify-content: flex-start; align-items: center;">
+            <a href="detail/{{this.id}}" style="width: 160px;">
                 <img src="{{this.imageUrl}}" width="160px; height: 160px;">
             </a>
 
-            <div style="height: 160px; margin-left: 10px;">
+            <div style="margin-left: 10px;">
                 <a href="detail/{{this.id}}">
                     <h4>{{title}}</h4>
                 </a>
                 <p>{{description}} <a href="detail/{{this.id}}">Read More</a></p>
+                <div class="text-right">
+                    {{timestamp}}
+                </div>
             </div>
         </div>
     {{/each}}
