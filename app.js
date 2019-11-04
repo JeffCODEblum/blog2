@@ -5,6 +5,8 @@ const fs = require('fs');
 const bodyParser = require('body-parser');
 const app = express();
 const mongoose = require('mongoose');
+const testData = require('./testData.js');
+const Moment = require ('moment');
 
 mongoose.connect('mongodb://localhost/test', {useNewUrlParser: true});
 const db = mongoose.connection;
@@ -13,42 +15,60 @@ db.once('open', function() {
   // we're connected!
 });
 
-const ItemSchema = new mongoose.Schema({title: String, imageUrls: [String], description: String});
+const ItemSchema = new mongoose.Schema({title: String, imageUrls: [String], description: String, timestamp: String});
 const ItemModel = new mongoose.model('ItemModel', ItemSchema);
+
+const CommentSchema = new mongoose.Schema({email: String, name: String, comment: String, timestamp: String, hidden: Boolean, postId: String});
+const CommentModel = new mongoose.model('CommentModel', CommentSchema);
 
 app.use(express.static('public'))
 app.use(bodyParser.json());
- 
+
 app.engine('handlebars', exphbs());
 app.set('view engine', 'handlebars');
 
 const APP_URL = 'http://localhost:4000';
 
-const data = {
-    items: [
-        {
-            title: 'foo1',
-            description: 'this is a great buffalo nickel blah blah blah'
-        },
-        {
-            title: 'foo2',
-            description: 'this is a great buffalo nickel blah blah blah'
-        },
-        {
-            title: 'foo3',
-            description: 'this is a great buffalo nickel blah blah blah'
+const data = testData;
+function authenticate(req, res, callback) {
+    if (!req.headers.authorization) {
+        res.redirect(APP_URL + '/login');
+    }
+    else {
+        var token = req.headers.authorization;
+        try {
+            var decoded = jwt.verify(token, 'private-key');
+            if (decoded) {
+                callback();
+            }
+            else {
+                res.sendStatus(403);
+            }
         }
-    ]
-};
+        catch(err) {
+            console.log(err);
+            res.sendStatus(403);
+        }
+    }
+    return;
+}
 
 // dummy data load
 app.get('/prime-db', (req, res) => {
     for (let i = 0; i < data.items.length; i++) {
-        const model = new ItemModel({
-            title: data.items[i].title,
-            description: data.items[i].description
+        const img = data.images[i].replace(/^data:image\/\w+;base64,/, "");
+        const buf = Buffer.from(img, 'base64');
+        const fullpathname = '/uploads/' + Date.now() + '.png';
+        fs.writeFile('./public' + fullpathname, buf, () => {
+            const model = new ItemModel({
+                title: data.items[i].title,
+                description: data.items[i].description,
+                imageUrls: [fullpathname],
+                timestamp: '' + Date.now()
+            });
+            model.save();
+            return;
         });
-        model.save();
     }
     res.send(true);
     return;
@@ -62,7 +82,7 @@ app.get('/', (req, res) => {
             res.sendStatus(500);
         }
         else {
-            const context = docs.map(item => {return { id: item.id, title: item.title, imageUrl: item.imageUrls[0]}});
+            const context = docs.map(item => {return { id: item.id, title: item.title, description: item.description, imageUrl: item.imageUrls[0], timestamp: Moment(parseInt(item.timestamp)).format("MMMM Do YYYY")}});
             res.render('home', {items: context});
         }
     });
@@ -77,15 +97,33 @@ app.get('/detail/:id', (req, res) => {
             res.sendStatus(500);
         }
         if (doc) {
-            const context = { 
-                id: doc.id, 
-                title: doc.title, 
-                imageUrls: doc.imageUrls, 
-                description: doc.description, 
-                url: APP_URL, 
-                mainImageUrl: doc.imageUrls[0]
-            };
-            res.render('detail', context);
+            CommentModel.find({postId: req.params.id}, (err, docs) => {
+                if (err) {
+                    console.log(err);
+                    res.sendStatus(500);
+                }
+                if (docs) {
+                    const comments = docs.map(doc => {
+                        return {
+                            email: doc.email, 
+                            name: doc.name, 
+                            comment: doc.comment, 
+                            timestamp: Moment(parseInt(doc.timestamp)).format('MMMM Do YYYY')
+                        }
+                    });
+                    const context = { 
+                        id: doc.id, 
+                        title: doc.title, 
+                        imageUrls: doc.imageUrls, 
+                        description: doc.description, 
+                        url: APP_URL, 
+                        mainImageUrl: doc.imageUrls[0],
+                        timestamp: doc.timestamp,
+                        comments: comments
+                    };
+                    res.render('detail', context);
+                }
+            });
         }
     });
     return;
@@ -111,29 +149,6 @@ app.post('/login-submit', (req, res) => {
     return;
 });
 
-function authenticate(req, res, callback) {
-    if (!req.headers.authorization) {
-        res.redirect(APP_URL + '/login');
-    }
-    else {
-        var token = req.headers.authorization;
-        try {
-            var decoded = jwt.verify(token, 'private-key');
-            if (decoded) {
-                callback();
-            }
-            else {
-                res.sendStatus(403);
-            }
-        }
-        catch(err) {
-            console.log(err);
-            res.sendStatus(403);
-        }
-    }
-    return;
-}
-
 // main admin page
 app.get('/admin', (req, res) => {
     authenticate(req, res, () => {
@@ -144,7 +159,7 @@ app.get('/admin', (req, res) => {
                 res.sendStatus(500);
             }
             if (docs) {
-                context.items =  docs.map(item => {return { id: item.id, title: item.title, imageUrl: item.imageUrls[0]}});
+                context.items =  docs.map(item => {return { id: item.id, title: item.title, imageUrl: item.imageUrls[0], timestamp: item.timestamp}});
                 context.editItem = false;
                 res.render('admin', context);
             }
@@ -164,15 +179,33 @@ app.get('/admin/:id', (req, res) => {
                 console.log(err);
             }
             if (doc) {
-                const context = {url: APP_URL, editItem: doc};
-                ItemModel.find({}, (err, docs)=> {
+                CommentModel.find({postId: id}, (err, docs) => {
                     if (err) {
                         console.log(err);
                         res.sendStatus(500);
                     }
-                    if (docs) {
-                        context.items = docs.map(item => {return { id: item.id, title: item.title, imageUrl: item.imageUrls[0]}});
-                        res.render('admin', context);
+                    if (doc) {
+                        const comments = docs.map(doc => {
+                            return {
+                                id: doc._id,
+                                name: doc.name,
+                                email: doc.email,
+                                comment: doc.comment,
+                                timestamp: Moment(parseInt(doc.timestamp)).format('MMMM Do YYYY')
+                            } 
+                        });
+                        const context = {url: APP_URL, editItem: doc, comments: comments};
+                        ItemModel.find({}, (err, docs)=> {
+                            if (err) {
+                                console.log(err);
+                                res.sendStatus(500);
+                            }
+                            if (docs) {
+                                context.items = docs.map(item => {return { id: item.id, title: item.title, imageUrl: item.imageUrls[0], timestamp: item.timestamp}});
+                                res.render('admin', context);
+                            }
+                            return;
+                        });
                     }
                     return;
                 });
@@ -209,11 +242,59 @@ app.post('/upload-image', (req, res) => {
     return;
 });
 
+app.post('/post-comment/:id', (req, res) => {
+    const name = req.body.name;
+    const email = req.body.email;
+    const comment = req.body.comment;
+    const timestamp = Date.now() + '';
+    const id = req.params.id;
+
+    const commentModel = new CommentModel({
+        name: name,
+        email: email,
+        comment: comment,
+        hidden: true,
+        timestamp: timestamp,
+        postId: id
+    });
+
+    commentModel.save((err, doc) => {
+        if (err) {
+            console.log(err);
+            res.sendStatus(500);
+        }
+        if (doc) {
+            res.send(true);
+        }
+        return;
+    });
+    return;
+});
+
+app.delete('/delete-comment/:id', (req, res) => {
+    console.log("delete fired");
+    authenticate(req, res, () => {
+        const id = req.params.id;
+        CommentModel.deleteOne({_id: id}, (err, doc) => {
+            if (err) {
+                console.log(err);
+                res.send(500);
+            }
+            if (doc) {
+                res.send(true);
+            }
+            return;
+        });
+        return;
+    });
+    return;
+});
+
 app.post('/save-post', (req, res) => {
     authenticate(req, res, () => {
         const title = req.body.title;
         const description = req.body.description;
-        const model = new ItemModel({title: title, description: description, imageUrls: []});
+        const model = new ItemModel({title: title, description: description, imageUrls: [], timestamp: '' + Date.now()});
         model.save((err, doc) => {
             if (err) {
                 console.log(err);

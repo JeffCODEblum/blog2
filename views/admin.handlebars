@@ -20,6 +20,7 @@
     <br>
 
     {{#if editItem}}
+        <h4>Images</h4>
         <div class="input-group">
             <input id="file-input" type="file" name="file" data-id="{{editItem.id}}">
             <button id="upload-btn" class="btn btn-md btn-default" style="border: 1px #ccc solid">upload</button>
@@ -35,6 +36,18 @@
                 </div>
             {{/each}}   
         </div>
+
+        <h4>Comments</h4>
+        {{#each comments}}
+            <div>
+                <p>{{this.email}}</p>
+                <p>{{this.name}}</p>
+                <p>{{this.comment}}</p>
+                <p>{{this.timestamp}}</p>
+                <button class="btn btn-danger delete-comment-btn" data-id="{{this.id}}">delete</button>
+            </div>
+            <hr />
+        {{/each}}
     {{/if}}
 
     <hr>

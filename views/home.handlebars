@@ -1,21 +1,32 @@
 <div id="jumbo" style="width: 100%; height: 300px; display: flex; justify-content: center; align-items: center;">
     <!-- <h1 style="font-size: 4em; color: white;">Red Hills Rarities</h1> -->
-    <div style="border-bottom: solid 2px #ccc; width: 600px; background-color: white; padding: 30px; display: flex; flex-direction: row; justify-content: center;"></div>
+    <div style="border-bottom: solid 2px #ccc; width: 600px; background-color: white; padding: 30px; display: flex; flex-direction: row; justify-content: center;">
+        <h1>Generic Blog</h1>
+    </div>
 </div>
 
-<div id="nav" style="border-bottom: solid 2px #ccc; width: 100%; height: 60px; display: flex; justify-content: flex-start; align-items: center; flex-direction: row;">
+<div id="nav" style="background-color: #fff; border-bottom: solid 2px #ccc; width: 100%; height: 60px; display: flex; justify-content: flex-start; align-items: center; flex-direction: row;">
     <div class="nav-link">
         <a href="#">Home</a>
     </div>
 </div>
 
-<div style="padding-left: 50px; padding-right: 50px; background-color: #efefefef; display: flex; flex-direction: row; justify-content: center; align-items: center; flex-wrap: wrap;">
+<div style="background-color: #efefefef; display: flex; flex-direction: column; justify-content: center; align-items: center; flex-wrap: wrap;">
     {{#each items}}
-        <div style="width: 100px; height: 100px; margin: 10px; background-color: #ccc;">
-            <a href="detail/{{this.id}}">
-                <img src="{{this.imageUrl}}" width="100px; height: 100px;">
-                {{this.title}}
+        <div style="border-bottom: solid 2px #ccc; padding: 20px; width: 600px; margin: 10px; background-color: #fff; display: flex; flex-direction: row; justify-content: flex-start; align-items: center;">
+            <a href="detail/{{this.id}}" style="width: 160px;">
+                <img src="{{this.imageUrl}}" width="160px; height: 160px;">
             </a>
+
+            <div style="margin-left: 10px;">
+                <a href="detail/{{this.id}}">
+                    <h4>{{title}}</h4>
+                </a>
+                <p>{{description}} <a href="detail/{{this.id}}">Read More</a></p>
+                <div class="text-right">
+                    {{timestamp}}
+                </div>
+            </div>
         </div>
     {{/each}}
 </div>
