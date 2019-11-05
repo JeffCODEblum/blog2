@@ -223,4 +223,14 @@ $( document ).ready(function() {
             console.log(e);
         });
     });
+
+    $("#create-btn").click(function(e) {
+        e.preventDefault();
+        $("#post-form").show();
+    });
+
+    $("#cancel-btn").click(function(e) {
+        e.preventDefault();
+        $("#post-form").hide();
+    });
 });

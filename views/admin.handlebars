@@ -1,28 +1,54 @@
 <div class="container" style="max-width: 600px; background-color: #fff">
     <h1>admin</h1>
-    <h4>{{#if editItem}} Edit {{else}} Add {{/if}} Item</h4>
     {{#if editItem}}
+    <div>
+        <h4> Edit  Item</h4>
         <div id="id-div" style="display: none;" data-id="{{editItem.id}}"></div>
+        <div class="form-group">
+            <label>title</label>
+            <input id="title-input" type="text" class="form-control" value="{{editItem.title}}" />
+        </div>
+
+        <div class="form-group">
+            <label>description</label>
+            <textarea rows="8" id="description-input" type="text" class="form-control">{{editItem.description}}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>body</label>
+            <textarea rows="16" id="body-input" type="text" class="form-control">{{editItem.body}}</textarea>
+        </div>
+
+        <div style="display: flex; flex-direction: row; justify-content: flex-end; align-items: center;">
+            {{!-- <button id="cancel-btn" class="btn btn-sm btn-default" style="border: solid 1px #ccc">Cancel</button> --}}
+            <button id="save-btn" class="btn btn-sm btn-primary">Save</button>
+        </div>
+    </div>
+    {{else}}
+    <div id="post-form" style="display: none;">
+        <h4> Create  Item</h4>
+        <div id="id-div" style="display: none;" data-id="{{editItem.id}}"></div>
+        <div class="form-group">
+            <label>title</label>
+            <input id="title-input" type="text" class="form-control" value="{{editItem.title}}" />
+        </div>
+
+        <div class="form-group">
+            <label>description</label>
+            <textarea rows="8" id="description-input" type="text" class="form-control">{{editItem.description}}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>body</label>
+            <textarea rows="16" id="body-input" type="text" class="form-control">{{editItem.body}}</textarea>
+        </div>
+
+        <div style="display: flex; flex-direction: row; justify-content: flex-end; align-items: center;">
+            <button id="cancel-btn" class="btn btn-sm btn-default" style="border: solid 1px #ccc">Cancel</button>
+            <button id="save-btn" class="btn btn-sm btn-primary">Save</button>
+        </div>
+    </div>
     {{/if}}
-    <div class="form-group">
-        <label>title</label>
-        <input id="title-input" type="text" class="form-control" value="{{editItem.title}}" />
-    </div>
-
-    <div class="form-group">
-        <label>description</label>
-        <textarea rows="8" id="description-input" type="text" class="form-control">{{editItem.description}}</textarea>
-    </div>
-
-    <div class="form-group">
-        <label>body</label>
-        <textarea rows="16" id="body-input" type="text" class="form-control">{{editItem.body}}</textarea>
-    </div>
-
-    <div style="display: flex; flex-direction: row; justify-content: flex-end; align-items: center;">
-        <button id="save-btn" class="btn btn-primary">Save</button>
-    </div>
-    <br>
 
     {{#if editItem}}
         <h4>Images</h4>
@@ -57,32 +83,37 @@
 
     <hr>
 
-    <h4>Inventory</h4>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Date</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{#each items}}
+    <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start;">
+        <h4>Inventory</h4>
+        <div style="width: 100%; padding-bottom: 10px; display: flex; flext-direction: row; justify-content: flex-end;">
+            <button class="btn btn-sm btn-primary" id="create-btn">Create New</button>
+        </div>
+        <table class="table">
+            <thead>
                 <tr>
-                    <td>{{this.title}}</td>
-                    <td>{{this.timestamp}}</td>
-                    <td>
-                        <button class="edit-btn btn btn-xs btn-default" data-id="{{this.id}}">
-                            edit
-                        </button>
-                        <button class="delete-btn btn btn-xs btn-danger" data-id="{{this.id}}">
-                            delete
-                        </button>
-                    </td>
+                    <th>Title</th>
+                    <th>Date</th>
+                    <th>Actions</th>
                 </tr>
-            {{/each}}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                {{#each items}}
+                    <tr>
+                        <td>{{this.title}}</td>
+                        <td>{{this.timestamp}}</td>
+                        <td>
+                            <button class="edit-btn btn btn-sm btn-default" style="border: 1px solid #ccc" data-id="{{this.id}}">
+                                edit
+                            </button>
+                            <button class="delete-btn btn btn-sm btn-danger" data-id="{{this.id}}">
+                                delete
+                            </button>
+                        </td>
+                    </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script src="{{url}}/admin.js"></script>
