@@ -172,7 +172,7 @@ app.get('/admin', (req, res) => {
                     id: item.id, 
                     title: item.title, 
                     imageUrl: item.imageUrls[0], 
-                    timestamp: item.timestamp
+                    timestamp: Moment(parseInt(item.timestamp)).format('MMMM Do YYYY')
                 }});
                 context.editItem = false;
                 res.render('admin', context);

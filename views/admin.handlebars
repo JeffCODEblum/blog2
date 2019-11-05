@@ -58,20 +58,31 @@
     <hr>
 
     <h4>Inventory</h4>
-    <ul>
-    {{#each items}}
-            <li>
-                {{this.id}}
-                {{this.title}} 
-                <button class="edit-btn btn btn-xs btn-default" data-id="{{this.id}}">
-                    edit
-                </button>
-                <button class="delete-btn btn btn-xs btn-danger" data-id="{{this.id}}">
-                    delete
-                </button>
-            </li>
-    {{/each}}
-    </ul>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each items}}
+                <tr>
+                    <td>{{this.title}}</td>
+                    <td>{{this.timestamp}}</td>
+                    <td>
+                        <button class="edit-btn btn btn-xs btn-default" data-id="{{this.id}}">
+                            edit
+                        </button>
+                        <button class="delete-btn btn btn-xs btn-danger" data-id="{{this.id}}">
+                            delete
+                        </button>
+                    </td>
+                </tr>
+            {{/each}}
+        </tbody>
+    </table>
 </div>
 
 <script src="{{url}}/admin.js"></script>
