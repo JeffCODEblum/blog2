@@ -185,6 +185,15 @@ app.get('/admin', (req, res) => {
 });
 
 // admin detail page
+app.get('/admin-new', (req, res) => {
+    authenticate(req, res, () => {
+        const context = {url: APP_URL};
+        res.render('admin-new', context);
+    });
+    return;
+});
+
+// admin detail page
 app.get('/admin/:id', (req, res) => {
     authenticate(req, res, () => {
         const id = req.params.id;
@@ -209,22 +218,7 @@ app.get('/admin/:id', (req, res) => {
                             } 
                         });
                         const context = {url: APP_URL, editItem: doc, comments: comments};
-                        ItemModel.find({}, (err, docs)=> {
-                            if (err) {
-                                console.log(err);
-                                res.sendStatus(500);
-                            }
-                            if (docs) {
-                                context.items = docs.map(item => {return { 
-                                    id: item.id, 
-                                    title: item.title, 
-                                    imageUrl: item.imageUrls[0], 
-                                    timestamp: item.timestamp
-                                }});
-                                res.render('admin', context);
-                            }
-                            return;
-                        });
+                        res.render('admin-edit', context);
                     }
                     return;
                 });
@@ -321,12 +315,14 @@ app.post('/save-post', (req, res) => {
             timestamp: '' + Date.now(),
             body: body
         });
+        console.log(model);
         model.save((err, doc) => {
             if (err) {
                 console.log(err);
                 res.sendStatus(500);
             }
             if (doc) {
+                console.log("saved");
                 res.send(true);
             }
             return;
