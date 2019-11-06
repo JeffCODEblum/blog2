@@ -1,4 +1,4 @@
-var URL = 'http://localhost:4000';
+var URL = $("#url-div").data("url");
 $( document ).ready(function() {
     var token = localStorage.getItem('jwt');
     if (token) {

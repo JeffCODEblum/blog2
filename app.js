@@ -89,7 +89,8 @@ app.get('/', (req, res) => {
                 description: item.description, 
                 imageUrl: item.imageUrls[0], 
                 timestamp: Moment(parseInt(item.timestamp)).format("MMMM Do YYYY"),
-                body: item.body
+                body: item.body,
+                url: APP_URL
             }});
             res.render('home', {items: context});
         }
@@ -116,7 +117,7 @@ app.get('/detail/:id', (req, res) => {
                             email: doc.email, 
                             name: doc.name, 
                             comment: doc.comment, 
-                            timestamp: Moment(parseInt(doc.timestamp)).format('MMMM Do YYYY')
+                            timestamp: Moment(parseInt(doc.timestamp)).format('MMMM Do YYYY'),
                         }
                     });
                     const context = { 

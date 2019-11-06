@@ -1,5 +1,5 @@
-var URL = 'http://localhost:4000';
 $( document ).ready(function() {
+    var URL = $("#url-div").data("url");
 
     // go to edit page
     $(".edit-btn").click(function(e) {
