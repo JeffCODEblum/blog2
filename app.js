@@ -55,21 +55,23 @@ function authenticate(req, res, callback) {
 
 // dummy data load
 app.get('/prime-db', (req, res) => {
-    for (let i = 0; i < data.items.length; i++) {
-        const img = data.images[i].replace(/^data:image\/\w+;base64,/, "");
-        const buf = Buffer.from(img, 'base64');
-        const fullpathname = '/uploads/' + Date.now() + '.png';
-        fs.writeFile('./public' + fullpathname, buf, () => {
-            const model = new ItemModel({
-                title: data.items[i].title,
-                description: data.items[i].description,
-                imageUrls: [fullpathname],
-                timestamp: '' + Date.now(),
-                body: data.items[i].body
+    for (let j = 0; j < 20; j++) {
+        for (let i = 0; i < data.items.length; i++) {
+            const img = data.images[i].replace(/^data:image\/\w+;base64,/, "");
+            const buf = Buffer.from(img, 'base64');
+            const fullpathname = '/uploads/' + Date.now() + '.png';
+            fs.writeFile('./public' + fullpathname, buf, () => {
+                const model = new ItemModel({
+                    title: data.items[i].title,
+                    description: data.items[i].description,
+                    imageUrls: [fullpathname],
+                    timestamp: '' + Date.now() - j * 1000 * 60 * 60 * 24 * 31,
+                    body: data.items[i].body
+                });
+                model.save();
+                return;
             });
-            model.save();
-            return;
-        });
+        }
     }
     res.send(true);
     return;
@@ -77,13 +79,51 @@ app.get('/prime-db', (req, res) => {
  
 // home page
 app.get('/', (req, res) => {
-    ItemModel.find({}, (err, docs) => {
+   res.redirect('/from/0');
+});
+
+// app.get('/from/:from', (req, res) => {
+//     let from = parseInt(req.params.from);
+//     if (!from) from = Date.now();
+//     ItemModel.find({timestamp: {$lte: from}}).limit(10).sort('-timestamp').exec((err, docs) => {
+//         if (err) {
+//             console.log(err);
+//             res.sendStatus(500);
+//         }
+//         else {
+//             const items = docs.map(item => {return { 
+//                 id: item.id, 
+//                 title: item.title, 
+//                 description: item.description, 
+//                 imageUrl: item.imageUrls[0], 
+//                 timestamp: Moment(parseInt(item.timestamp)).format("MMMM Do YYYY"),
+//                 body: item.body,
+//                 url: APP_URL
+//             }});
+//             const context = {
+//                 items: items,
+//                 from: from,
+//                 to: docs[docs.length - 1].timestamp
+//             };
+//             res.render('home', context);
+//         }
+//     });
+//     return;
+// });
+
+app.get('/from/:from', (req, res) => {
+    let from = parseInt(req.params.from);
+    if (!from) from = 0;
+    let prev = from - 10;
+    if (prev < 0) prev = 0;
+    let to = from + 10;
+    ItemModel.find({},{}, {skip: from, limit: 10}).sort('-timestamp').exec((err, docs) => {
         if (err) {
             console.log(err);
             res.sendStatus(500);
         }
         else {
-            const context = docs.map(item => {return { 
+            const items = docs.map(item => {return { 
                 id: item.id, 
                 title: item.title, 
                 description: item.description, 
@@ -92,7 +132,14 @@ app.get('/', (req, res) => {
                 body: item.body,
                 url: APP_URL
             }});
-            res.render('home', {items: context});
+            const context = {
+                items: items,
+                showPrev: from > 0,
+                prev: prev,
+                from: from,
+                to: to
+            };
+            res.render('home', context);
         }
     });
     return;
