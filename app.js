@@ -55,21 +55,23 @@ function authenticate(req, res, callback) {
 
 // dummy data load
 app.get('/prime-db', (req, res) => {
-    for (let i = 0; i < data.items.length; i++) {
-        const img = data.images[i].replace(/^data:image\/\w+;base64,/, "");
-        const buf = Buffer.from(img, 'base64');
-        const fullpathname = '/uploads/' + Date.now() + '.png';
-        fs.writeFile('./public' + fullpathname, buf, () => {
-            const model = new ItemModel({
-                title: data.items[i].title,
-                description: data.items[i].description,
-                imageUrls: [fullpathname],
-                timestamp: '' + Date.now(),
-                body: data.items[i].body
+    for (let j = 0; j < 30; j++) {
+        for (let i = 0; i < data.items.length; i++) {
+            const img = data.images[i].replace(/^data:image\/\w+;base64,/, "");
+            const buf = Buffer.from(img, 'base64');
+            const fullpathname = '/uploads/' + Date.now() + '.png';
+            fs.writeFile('./public' + fullpathname, buf, () => {
+                const model = new ItemModel({
+                    title: data.items[i].title,
+                    description: data.items[i].description,
+                    imageUrls: [fullpathname],
+                    timestamp: '' + Date.now() - j * 1000 * 60 * 60 * 24 * 31,
+                    body: data.items[i].body
+                });
+                model.save();
+                return;
             });
-            model.save();
-            return;
-        });
+        }
     }
     res.send(true);
     return;
@@ -77,7 +79,13 @@ app.get('/prime-db', (req, res) => {
  
 // home page
 app.get('/', (req, res) => {
-    ItemModel.find({}, (err, docs) => {
+   res.redirect('/from/0');
+});
+
+app.get('/from/:from', (req, res) => {
+    let from = parseInt(req.params.from);
+    if (!from) from = Date.now();
+    ItemModel.find({timestamp: {$lte: from}}).limit(10).sort('-timestamp').exec((err, docs) => {
         if (err) {
             console.log(err);
             res.sendStatus(500);
