@@ -55,7 +55,7 @@ function authenticate(req, res, callback) {
 
 // dummy data load
 app.get('/prime-db', (req, res) => {
-    for (let j = 0; j < 30; j++) {
+    for (let j = 0; j < 20; j++) {
         for (let i = 0; i < data.items.length; i++) {
             const img = data.images[i].replace(/^data:image\/\w+;base64,/, "");
             const buf = Buffer.from(img, 'base64');
@@ -82,16 +82,48 @@ app.get('/', (req, res) => {
    res.redirect('/from/0');
 });
 
+// app.get('/from/:from', (req, res) => {
+//     let from = parseInt(req.params.from);
+//     if (!from) from = Date.now();
+//     ItemModel.find({timestamp: {$lte: from}}).limit(10).sort('-timestamp').exec((err, docs) => {
+//         if (err) {
+//             console.log(err);
+//             res.sendStatus(500);
+//         }
+//         else {
+//             const items = docs.map(item => {return { 
+//                 id: item.id, 
+//                 title: item.title, 
+//                 description: item.description, 
+//                 imageUrl: item.imageUrls[0], 
+//                 timestamp: Moment(parseInt(item.timestamp)).format("MMMM Do YYYY"),
+//                 body: item.body,
+//                 url: APP_URL
+//             }});
+//             const context = {
+//                 items: items,
+//                 from: from,
+//                 to: docs[docs.length - 1].timestamp
+//             };
+//             res.render('home', context);
+//         }
+//     });
+//     return;
+// });
+
 app.get('/from/:from', (req, res) => {
     let from = parseInt(req.params.from);
-    if (!from) from = Date.now();
-    ItemModel.find({timestamp: {$lte: from}}).limit(10).sort('-timestamp').exec((err, docs) => {
+    if (!from) from = 0;
+    let prev = from - 10;
+    if (prev < 0) prev = 0;
+    let to = from + 10;
+    ItemModel.find({},{}, {skip: from, limit: 10}).sort('-timestamp').exec((err, docs) => {
         if (err) {
             console.log(err);
             res.sendStatus(500);
         }
         else {
-            const context = docs.map(item => {return { 
+            const items = docs.map(item => {return { 
                 id: item.id, 
                 title: item.title, 
                 description: item.description, 
@@ -100,7 +132,14 @@ app.get('/from/:from', (req, res) => {
                 body: item.body,
                 url: APP_URL
             }});
-            res.render('home', {items: context});
+            const context = {
+                items: items,
+                showPrev: from > 0,
+                prev: prev,
+                from: from,
+                to: to
+            };
+            res.render('home', context);
         }
     });
     return;
