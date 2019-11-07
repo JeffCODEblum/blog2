@@ -137,7 +137,8 @@ app.get('/from/:from', (req, res) => {
                 showPrev: from > 0,
                 prev: prev,
                 from: from,
-                to: to
+                to: to,
+                url: APP_URL
             };
             res.render('home', context);
         }
